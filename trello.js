@@ -8,17 +8,18 @@ var baseUrl = 'https://api.trello.com/1';
 var logger  = require('./logger')(module);
 
 var addCommentToCard = co.wrap(function* (cardId, comment) {
-    //try {
-    //    return yield request.post(baseUrl + '/cards/' + cardId + '/actions/comments?key=' + key + '&token=' + token, {
-    //        json: true,
-    //        body: {
-    //            text: comment
-    //        }
-    //    });
-    //} catch (e) {
-    //    logger.error(e);
-    //}
-    return Promise.resolve(true);
+    try {
+        return yield request.post(baseUrl + '/cards/' + cardId + '/actions/comments?key=' + key + '&token=' + token, {
+            json: true,
+            body: {
+                text: comment
+            }
+        });
+    } catch (e) {
+        return Promise.resolve(false);
+        logger.error(e);
+    }
+    //return Promise.resolve(true);
 });
 
 var findCardWithIssue = function(cards, issueNumber) {
@@ -63,14 +64,16 @@ module.exports = co.wrap(function* () {
                 var cards = issueNumbers.map((issueNumber) => { return findCardWithIssue(allCards, issueNumber) });
                 logger.info('--------------------------------------------------------------');
                 logger.info('Found cards : ');
-                logger.info(cards)
-                logger.info('for issue numbers ')
+                logger.info(cards);
+                logger.info('for issue numbers ');
                 logger.info(issueNumbers);
                 logger.info('--------------------------------------------------------------');
-                //var cardCommentPromise = cards.map(function(card) {
-                //    return addCommentToCard(card.id, 'Anand Aravindan Authored https://github.com/synergy55inc/sef/commit/937903af8f0acde9526216ea0854d49ec81fb73a');
-                //})
-                return Promise.resolve(true);
+                return cards.map(function(card) {
+                    if(card && card.id)
+                        return addCommentToCard(card.id, comment);
+                    else
+                        return Promise.resolve(true);
+                });
             } catch (e) {
                 logger.error(e);
             }
@@ -87,10 +90,12 @@ module.exports = co.wrap(function* () {
                 logger.info(cardNumbers);
                 logger.info('--------------------' +
                     '------------------------------------------');
-                //var cardCommentPromise = cards.map(function(card) {
-                //    return addCommentToCard(card.id, 'Anand Aravindan Authored https://github.com/synergy55inc/sef/commit/937903af8f0acde9526216ea0854d49ec81fb73a');
-                //})
-                return Promise.resolve(true);
+                return cards.map(function(card) {
+                    if(card && card.id)
+                        return addCommentToCard(card.id, comment);
+                    else
+                        return Promise.resolve(true);
+                });
             } catch (e) {
                 logger.error(e);
             }
