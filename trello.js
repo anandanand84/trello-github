@@ -16,8 +16,8 @@ var addCommentToCard = co.wrap(function* (cardId, comment) {
             }
         });
     } catch (e) {
-        return Promise.resolve(false);
         logger.error(e);
+        return Promise.resolve(false);
     }
     //return Promise.resolve(true);
 });

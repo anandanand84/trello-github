@@ -26,7 +26,9 @@ module.exports = {
                     .concat(util.findTrelloCardNumbers(commitMessage))));
                 var comment;
                 if (isPullRequest) {
-                    comment = committer + commitMessage + commitUrl;
+                    comment = committer + " Authored " + commitUrl;
+                } else {
+                    comment = committer + " Authored " + commitUrl;
                 }
                 logger.info('----------------------------------------')
                 logger.info('Commit Message ' + commitMessage);
