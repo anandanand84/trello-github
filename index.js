@@ -13,6 +13,8 @@ var fs        = require('fs');
 var env       = process.env;
 var logger    = require('./logger')(module);
 var Actions   = require('./action');
+var fs        = require('fs');
+var path      = require('path');
 
 app.use(require('koa-static')('app'));
 
@@ -21,6 +23,8 @@ var router = new Router();
 router.post('/',koaBody, function *() {
     this.response.body = this.request.body;
     var body = this.request.body;
+    var location = path.join(__dirname, '/messages/') + Date.now() + '.json';
+    fs.writeFileSync(location, JSON.stringify(body, null, 4));
     Actions.processCommits(body);
     Actions.processDelete(body);
     return true;
