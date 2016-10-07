@@ -26,7 +26,9 @@ module.exports = API = {
                     comment = committer + " Authored \n" + commitUrl + " \n" + " "+ commitMessage ;
                 } else {
                     let filesChanged = 0;
-                    message.commits.forEach(function(commit) {
+                    message.commits.filter(function(commit) {
+                        return commit.distinct;
+                    }).forEach(function(commit) {
                         comment = comment + committer + " authored ";
                         comment = comment + " "  + commit.url + "\n\n";
                         comment = comment + "--- \n";
