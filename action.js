@@ -6,7 +6,8 @@ var util   = require('./Util.js');
 var logger = require('./logger')(module);
 var co     = require('co');
 
-module.exports = {
+let API ;
+module.exports = API = {
     processCommits : co.wrap(function* (message) {
         try {
             logger.info('Testing commits');
@@ -14,22 +15,31 @@ module.exports = {
             if (commited) {
                 logger.info('Processing commits');
                 logger.info('----------------------------------------')
-                var commitMessage = message.head_commit.message;
                 var committer = message.pusher.name;
                 var repository = message.repository.full_name;
                 var branch = message.ref.split('refs/heads/')[1];
                 var isPullRequest = (message.head_commit.committer.username === 'web-flow');
                 var commitUrl = message.head_commit.url;
+                var commitMessage = message.head_commit.message;
+                var comment = "";
+                if (isPullRequest) {
+                    comment = committer + " Authored \n" + commitUrl + " \n" + " "+ commitMessage ;
+                } else {
+                    let filesChanged = 0;
+                    message.commits.forEach(function(commit) {
+                        comment = comment + committer + " authored ";
+                        comment = comment + " "  + commit.url + "\n\n";
+                        comment = comment + "--- \n";
+                        comment = comment + commit.message + "\n \n \n --- \n";
+                        filesChanged = filesChanged + commit.added.length + commit.modified.length + commit.removed.length;
+                    });
+                    //comment = comment + "--- \n";
+                    comment = comment + "\n No of files changed : "+filesChanged;
+                };
                 var issueNumbers = Array.from(new Set(util.findGithubIssueNumber(branch)
                     .concat(util.findGithubIssueNumber(commitMessage))));
                 var cardNumbers = Array.from(new Set(util.findTrelloCardNumbers(branch)
                     .concat(util.findTrelloCardNumbers(commitMessage))));
-                var comment;
-                if (isPullRequest) {
-                    comment = committer + " Authored " + commitUrl;
-                } else {
-                    comment = committer + " Authored " + commitUrl;
-                }
                 logger.info('----------------------------------------')
                 logger.info('Commit Message ' + commitMessage);
                 logger.info('Committer      ' + committer);
@@ -81,3 +91,7 @@ module.exports = {
         }
     })
 }
+
+//if( require.main === module) {
+// API.processCommits(require('./messages/multiple_commits.json'));
+//}
