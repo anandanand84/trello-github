@@ -27,6 +27,7 @@ router.post('/',koaBody, function *() {
     fs.writeFileSync(location, JSON.stringify(body, null, 4));
     Actions.processCommits(body);
     Actions.processDelete(body);
+    Actions.processPullRequestOpen(body);
     return true;
 });
 

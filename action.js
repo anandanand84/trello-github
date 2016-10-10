@@ -42,7 +42,7 @@ module.exports = API = {
                     .concat(util.findGithubIssueNumber(commitMessage))));
                 var cardNumbers = Array.from(new Set(util.findTrelloCardNumbers(branch)
                     .concat(util.findTrelloCardNumbers(commitMessage))));
-                logger.info('----------------------------------------')
+                logger.info('----------------------------------------');
                 logger.info('Commit Message ' + commitMessage);
                 logger.info('Committer      ' + committer);
                 logger.info('repository     ' + repository);
@@ -50,7 +50,7 @@ module.exports = API = {
                 logger.info('isPullRequest  ' + isPullRequest);
                 logger.info('issueNumbers   ' + issueNumbers);
                 logger.info('cardNumbers    ' + cardNumbers);
-                logger.info('----------------------------------------')
+                logger.info('----------------------------------------');
 
                 var trelloBoard = yield trello(); //or trello('withboardid', key, token);//not yet implemented
                 var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment);
@@ -76,12 +76,12 @@ module.exports = API = {
                 var cardNumbers = Array.from(new Set(util.findTrelloCardNumbers(branch)));
                 var comment = pusher + " Deleted branch " + repository + " " + branch
 
-                logger.info('----------------------------------------')
+                logger.info('----------------------------------------');
                 logger.info('repository     ' + repository);
                 logger.info('branch         ' + branch);
                 logger.info('issueNumbers   ' + issueNumbers);
                 logger.info('cardNumbers    ' + cardNumbers);
-                logger.info('----------------------------------------')
+                logger.info('----------------------------------------');
 
                 var trelloBoard = yield trello(); //or trello('withboardid', key, token);//not yet implemented
                 var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment);
@@ -91,9 +91,35 @@ module.exports = API = {
         } catch (e) {
             logger.error(e)
         }
+    }),
+
+    processPullRequestOpen : co.wrap(function* (message) {
+        try {
+            logger.info('Testing for pull request open');
+            var isPullRequest = message.action === 'opened' && message.number && message.pull_request;
+            if(isPullRequest) {
+                var pullRequestTitle = message.pull_request.title + " " + message.pull_request.head.ref;
+                var issueNumbers = Array.from(new Set(util.findGithubIssueNumber(pullRequestTitle)));
+                var cardNumbers = Array.from(new Set(util.findTrelloCardNumbers(pullRequestTitle)));
+                var comment = message.pull_request.user.login + " Created a pull request " + "\n --- \n" + " \n"+ message.pull_request.body;
+                logger.info('----------------------------------------');
+                logger.info('pullRequestTitle     ' + pullRequestTitle);
+                logger.info('comment         ' + comment);
+                logger.info('issueNumbers   ' + issueNumbers);
+                logger.info('cardNumbers    ' + cardNumbers);
+                logger.info('----------------------------------------');
+
+                var trelloBoard = yield trello(); //or trello('withboardid', key, token);//not yet implemented
+                var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment);
+                var cardNumberPromise = trelloBoard.commentCardWithCardNumbers(cardNumbers, comment);
+                return yield [issueNumberPromise, cardNumberPromise]
+            }
+        }catch(e) {
+            logger.info(e);
+        }
     })
 }
 
 //if( require.main === module) {
-// API.processCommits(require('./messages/multiple_commits.json'));
+// API.processPullRequestOpen(require('./messages/pullrequest_open.json'));
 //}
