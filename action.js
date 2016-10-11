@@ -101,7 +101,7 @@ module.exports = API = {
                 var pullRequestTitle = message.pull_request.title + " " + message.pull_request.head.ref;
                 var issueNumbers = Array.from(new Set(util.findGithubIssueNumber(pullRequestTitle)));
                 var cardNumbers = Array.from(new Set(util.findTrelloCardNumbers(pullRequestTitle)));
-                var comment = message.pull_request.user.login + " Created a pull request " + "\n --- \n" + " \n"+ message.pull_request.body;
+                var comment = message.pull_request.user.login + " Created a pull request " + message.pull_request.html_url + " \n --- \n" + " \n"+ message.pull_request.body;
                 logger.info('----------------------------------------');
                 logger.info('pullRequestTitle     ' + pullRequestTitle);
                 logger.info('comment         ' + comment);
