@@ -1,13 +1,23 @@
 var request = require('request-promise');
 var co      = require('co');
 var config  = require('./config.json');
-var key     = config.trelloKey;
-var token   = config.trelloToken;
-var boardId = config.trelloBoardId;
 var baseUrl = 'https://api.trello.com/1';
 var logger  = require('./logger')(module);
 
-var addCommentToCard = co.wrap(function* (cardId, comment) {
+var getConfigForUser = function(user) {
+    if(!user) {
+        return {};
+    }
+    return {
+        key : config[user] ? config[user].trelloKey : undefined,
+        token : config[user] ? config[user].trelloToken : undefined,
+    };
+};
+
+var addCommentToCard = co.wrap(function* (cardId, comment, user) {
+    var userConfig = getConfigForUser(user);
+    var key     = userConfig.key || config.trelloKey;
+    var token   = userConfig.token || config.trelloToken;
     try {
         return yield request.post(baseUrl + '/cards/' + cardId + '/actions/comments?key=' + key + '&token=' + token, {
             json: true,
@@ -46,7 +56,14 @@ var findCardWithShortId = function(cards, cardNumber) {
 
 module.exports = co.wrap(function* () {
     try {
-        var boardCards = JSON.parse(yield request(baseUrl + '/boards/' + boardId + '/lists?cards=open&card_fields=name,idShort&fields=name&key=' + key + '&token=' + token));
+        var config = require('./config.json');
+        var key     = config.trelloKey;
+        var token   = config.trelloToken;
+        var boards  = config.trelloBoards;
+        var boardCards = [];
+        for(let boardId of boards) {
+          boardCards   = boardCards.concat(JSON.parse(yield request(baseUrl + '/boards/' + boardId + '/lists?cards=open&card_fields=name,idShort&fields=name&key=' + key + '&token=' + token)));
+        }
         var allCardTypes = boardCards.map(function (board) {
             return {
                 id: board.id,
@@ -58,7 +75,7 @@ module.exports = co.wrap(function* () {
         }, []);
 
 
-        var commentCardWithIssueNumbers = co.wrap(function* (issueNumbers, comment) {
+        var commentCardWithIssueNumbers = co.wrap(function* (issueNumbers, comment, user) {
             try {
                 if (issueNumbers.length <= 0) return Promise.resolve(true);
                 var cards = issueNumbers.map((issueNumber) => { return findCardWithIssue(allCards, issueNumber) });
@@ -70,7 +87,7 @@ module.exports = co.wrap(function* () {
                 logger.info('--------------------------------------------------------------');
                 return cards.map(function(card) {
                     if(card && card.id)
-                        return addCommentToCard(card.id, comment);
+                        return addCommentToCard(card.id, comment, user);
                     else
                         return Promise.resolve(true);
                 });
@@ -79,7 +96,7 @@ module.exports = co.wrap(function* () {
             }
         });
 
-        var commentCardWithCardNumbers = co.wrap(function*(cardNumbers, comment) {
+        var commentCardWithCardNumbers = co.wrap(function*(cardNumbers, comment, user) {
             try {
                 if (cardNumbers.length <= 0) return Promise.resolve(true);
                 var cards = cardNumbers.map((cardNumber) => {return findCardWithShortId(allCards, cardNumber) });
@@ -92,7 +109,7 @@ module.exports = co.wrap(function* () {
                     '------------------------------------------');
                 return cards.map(function(card) {
                     if(card && card.id)
-                        return addCommentToCard(card.id, comment);
+                        return addCommentToCard(card.id, comment, user);
                     else
                         return Promise.resolve(true);
                 });

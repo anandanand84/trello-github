@@ -1,5 +1,8 @@
 {
-  "trelloKey" : "",
-  "trelloToken" : "",
-  "trelloBoardId" : ""
+    "trelloKey": "",
+    "trelloToken": "",
+    "trelloBoards": [
+        "5137653c5612dfdf1a0086fa",
+        "57b366f1414724e6212623dd"
+    ]
 }

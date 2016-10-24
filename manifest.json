@@ -1,0 +1,6 @@
+{
+  "name": "trello-github",
+  "short_name": "trello-github",
+  "start_url": "/",
+  "display": "standalone"
+}

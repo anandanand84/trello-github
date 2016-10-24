@@ -11,7 +11,7 @@ module.exports = API = {
     processCommits : co.wrap(function* (message) {
         try {
             logger.info('Testing commits');
-            var commited = message.ref && (message.created === false && message.deleted === false) && (message.commits.length > 0)
+            var commited = message.ref && (message.deleted === false) && (message.commits.length > 0)
             if (commited) {
                 logger.info('Processing commits');
                 logger.info('----------------------------------------')
@@ -53,8 +53,8 @@ module.exports = API = {
                 logger.info('----------------------------------------');
 
                 var trelloBoard = yield trello(); //or trello('withboardid', key, token);//not yet implemented
-                var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment);
-                var cardNumberPromise = trelloBoard.commentCardWithCardNumbers(cardNumbers, comment);
+                var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment, committer);
+                var cardNumberPromise = trelloBoard.commentCardWithCardNumbers(cardNumbers, comment, committer);
                 return yield [issueNumberPromise, cardNumberPromise]
             }
         } catch (e) {
@@ -84,8 +84,8 @@ module.exports = API = {
                 logger.info('----------------------------------------');
 
                 var trelloBoard = yield trello(); //or trello('withboardid', key, token);//not yet implemented
-                var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment);
-                var cardNumberPromise = trelloBoard.commentCardWithCardNumbers(cardNumbers, comment);
+                var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment, pusher);
+                var cardNumberPromise = trelloBoard.commentCardWithCardNumbers(cardNumbers, comment, pusher);
                 return yield [issueNumberPromise, cardNumberPromise]
             }
         } catch (e) {
@@ -101,7 +101,8 @@ module.exports = API = {
                 var pullRequestTitle = message.pull_request.title + " " + message.pull_request.head.ref;
                 var issueNumbers = Array.from(new Set(util.findGithubIssueNumber(pullRequestTitle)));
                 var cardNumbers = Array.from(new Set(util.findTrelloCardNumbers(pullRequestTitle)));
-                var comment = message.pull_request.user.login + " Created a pull request " + message.pull_request.html_url + " \n --- \n" + " \n"+ message.pull_request.body;
+                var user = message.pull_request.user.login;
+                var comment =  + " Created a pull request " + message.pull_request.html_url + " \n --- \n" + " \n"+ message.pull_request.body;
                 logger.info('----------------------------------------');
                 logger.info('pullRequestTitle     ' + pullRequestTitle);
                 logger.info('comment         ' + comment);
@@ -110,8 +111,8 @@ module.exports = API = {
                 logger.info('----------------------------------------');
 
                 var trelloBoard = yield trello(); //or trello('withboardid', key, token);//not yet implemented
-                var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment);
-                var cardNumberPromise = trelloBoard.commentCardWithCardNumbers(cardNumbers, comment);
+                var issueNumberPromise = trelloBoard.commentCardWithIssueNumbers(issueNumbers, comment, user);
+                var cardNumberPromise = trelloBoard.commentCardWithCardNumbers(cardNumbers, comment, user);
                 return yield [issueNumberPromise, cardNumberPromise]
             }
         }catch(e) {

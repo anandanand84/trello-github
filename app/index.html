@@ -1,0 +1,73 @@
+<!doctype html>
+
+<html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>trello-github</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,500,500italic,700,700italic">
+  <link rel="import" id="polymer" href="/bower_components/polymer/polymer.html">
+  <link rel="import" id="bundle" href="/elements/elements.html">
+  <link rel="manifest" href="/manifest.json">
+  <script src="/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <head>
+    <style>
+      html,body {
+        width :100%;
+        height : 100%;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex;
+        justify-content: space-around;
+        background : #eeeeee;
+      }
+    </style>
+  </head>
+  <script>
+    var webComponentsSupported = ('registerElement' in document
+    && 'import' in document.createElement('link')
+    && 'content' in document.createElement('template'));
+
+    if (!webComponentsSupported) {
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = '/bower_components/webcomponentsjs/webcomponents-lite.min.js';
+      script.onload = finishLazyLoading;
+      document.head.appendChild(script);
+    } else {
+      finishLazyLoading();
+    }
+
+    function finishLazyLoading() {
+      // (Optional) Use native Shadow DOM if it's available in the browser.
+      window.Polymer = window.Polymer ||  {lazyRegister: true, dom: 'shadow'};
+
+      var onImportLoaded = function() {
+
+      };
+
+      var link = document.querySelector('#bundle');
+      if ( link.import && (link.import.readyState === 'complete' || link.import.readyState === 'interactive')) {
+        onImportLoaded();
+      } else {
+        link.addEventListener('load', onImportLoaded);
+      }
+    }
+    // See https://github.com/Polymer/polymer/issues/1381
+    window.addEventListener('WebComponentsReady', function() {
+      var app = document.querySelector('#app');
+      app.set('route' , { path : '/0'});
+      // imports are loaded and elements have been registered
+    });
+  </script>
+  <body>
+    <template is="dom-bind" id="app">
+      <trello-github-app></trello-github-app>
+    </template>
+  </body>
+</html>

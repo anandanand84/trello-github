@@ -1,0 +1,149 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="trello-github-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+        padding : 20px;
+      }
+    </style>
+    <iron-ajax url="/associateUser" method="put" content-type="application/json" id="associateUser"></iron-ajax>
+    <paper-card heading="Link Account" alt="link">
+      <div class="card-content">
+        <div class="layout vertical">
+          <h3>Follow the below steps to link your github and your trello account, once the account is linked your trello account will be used to add comments for your github commits</h3>
+          <ul>
+            <li class="layout vertical">
+              <h4>Generate your trello app key from this <a target="_blank" href="https://trello.com/1/appKey/generate">link</a> and add to the below text box</h4>
+              <paper-input label="Key" value="{{key}}" autovalidate min-length="10"></paper-input>
+            </li>
+            <li class="layout vertical">
+              <h4>Authorize this application to access your trello account</h4>
+              <paper-button raised on-click="_authorize">Authorize</paper-button>
+            </li>
+
+            <li class="layout vertical">
+              <h4>Enter the github user name to link</h4>
+              <div style="display:flex;justify-content: space-around;align-content: center;align-items: center;max-width: 600px;" class="layout horizontal around-justified center">
+                <paper-input  label="Account to link" value="{{user}}" autovalidate min-length="10"></paper-input>
+                <span>or</span>
+                <paper-button raised on-click="_authorizeGithub">Get username </paper-button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="card-actions" style="display: flex;flex-direction: row-reverse;">
+        <paper-button on-click="save">Save</paper-button>
+      </div>
+    </paper-card>
+    <paper-toast id="toast" text="Account linked successfully!" ></paper-toast>
+  </template>
+
+  <script>
+    var PopupCenter = function (url, title, w, h) {
+      // Fixes dual-screen position                         Most browsers      Firefox
+      var dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : screen.left;
+      var dualScreenTop = window.screenTop != undefined ? window.screenTop : screen.top;
+
+      var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+      var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+      var left = ((width / 2) - (w / 2)) + dualScreenLeft;
+      var top = ((height / 2) - (h / 2)) + dualScreenTop;
+      var newWindow = window.open(url, title, 'scrollbars=yes, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left);
+
+      if (window.focus) {
+        newWindow.focus();
+      }
+
+      return newWindow;
+    };
+    var popup = {};
+
+    Polymer({
+
+      is: 'trello-github-app',
+
+      properties: {
+        key: {
+          type: String,
+          value: '',
+          notify : true
+        },
+        token : {
+          type : String,
+          value : '',
+          notify : true
+        },
+        user : {
+          type : String,
+          value : '',
+          notify : true
+        }
+      },
+
+      created : function() {
+        this.listener = function(event) {
+          var data = JSON.parse(event.data);
+          if(data.type === 'token') {
+            this.set('token',data.token);
+            this._tokenUpdated();
+          } else {
+            this.set('user',data.user);
+            this._userUpdated();
+          }
+          window.removeEventListener('message', this.listener);
+        }.bind(this);;
+      },
+
+      _tokenUpdated: function() {
+        console.log(this.token);
+      },
+
+      detached : function() {
+//        window.removeEventListener('message', this.listener);
+      },
+
+      _authorize : function() {
+        var redirect = window.location.protocol + '//' + window.location.host +'/login-success.html';
+        var url = 'https://trello.com/1/authorize?response_type=token&redirect_uri='+redirect+'&name=Trello+Github+Integration&scope=read,write&expiration=never&key='+this.key;
+        window.addEventListener('message', this.listener);
+        popup = PopupCenter(url, 'Authroize');
+      },
+
+      _authorizeGithub : function() {
+        var redirect = window.location.protocol + '//' + window.location.host +'/login-success.html';
+        var url = 'https://github.com/login/oauth/authorize?client_id=1124568f50118ddb301b&scope=user&redirect_uri='+redirect;
+        window.addEventListener('message', this.listener);
+        popup = PopupCenter(url, 'Authroize');
+      },
+
+      _userUpdated : function() {
+        console.log('user' , this.user);
+      },
+
+      save : function() {
+        var self = this;
+        this.$.associateUser.body = {
+          'user' : this.user,
+          'trelloToken' : this.token,
+          'trelloKey' : this.key
+        }
+        this.$.associateUser.generateRequest().completes.then(function(request) {
+          self.$.toast.open();
+        }).catch(function() {
+          alert('Failed ! Retry.')
+        });
+      }
+
+    });
+  </script>
+</dom-module>
