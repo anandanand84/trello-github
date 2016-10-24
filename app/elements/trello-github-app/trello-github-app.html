@@ -121,7 +121,7 @@
 
       _authorizeGithub : function() {
         var redirect = window.location.protocol + '//' + window.location.host +'/login-success.html';
-        var url = 'https://github.com/login/oauth/authorize?client_id=1124568f50118ddb301b&scope=user&redirect_uri='+redirect;
+        var url = 'https://github.com/login/oauth/authorize?client_id=87b5b54b3185da8d15e9&scope=user&redirect_uri='+redirect;
         window.addEventListener('message', this.listener);
         popup = PopupCenter(url, 'Authroize');
       },

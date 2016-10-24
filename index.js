@@ -15,7 +15,8 @@ var logger    = require('./logger')(module);
 var Actions   = require('./action');
 var fs        = require('fs');
 var path      = require('path');
-const querystring = require('querystring')
+const querystring = require('querystring');
+var config    = require('./config.json');
 
 var router = new Router();
 
@@ -41,7 +42,7 @@ router.put('/associateUser',koaBody, function* () {
 router.get('/githubUser', function * () {
     try{
         var code = this.request.url.split('code=')[1];
-        var result = yield request.post('https://github.com/login/oauth/access_token?'+querystring.stringify({ client_id: '1124568f50118ddb301b',client_secret:'6172b41e8662596deb99307be03bde53f6815fd6', code: code }));
+        var result = yield request.post('https://github.com/login/oauth/access_token?'+querystring.stringify({ client_id: config.client_id,client_secret:config.client_secret, code: code }));
         var accessToken = querystring.parse(result).access_token;
         var options = {
             url: 'https://api.github.com/user?access_token='+accessToken,
