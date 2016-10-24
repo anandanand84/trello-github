@@ -62,7 +62,12 @@ module.exports = co.wrap(function* () {
         var boards  = config.trelloBoards;
         var boardCards = [];
         for(let boardId of boards) {
-          boardCards   = boardCards.concat(JSON.parse(yield request(baseUrl + '/boards/' + boardId + '/lists?cards=open&card_fields=name,idShort&fields=name&key=' + key + '&token=' + token)));
+            try{
+                boardCards   = boardCards.concat(JSON.parse(yield request(baseUrl + '/boards/' + boardId + '/lists?cards=open&card_fields=name,idShort&fields=name&key=' + key + '&token=' + token)));
+            }catch(err) {
+                logger.info('Authorization declined');
+                logger.error(err);
+            }
         }
         var allCardTypes = boardCards.map(function (board) {
             return {
